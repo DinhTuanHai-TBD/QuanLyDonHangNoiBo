@@ -1,0 +1,2868 @@
+{
+  "info": {
+    "_postman_id": "b1fd9d5f-5c1c-4de5-861b-29e4f0fdb001",
+    "name": "QuanLyDonHangNoiBo API - All Features",
+    "description": "Collection test tat ca tinh nang HTTP cua du an QuanLyDonHangNoiBo.\nChay theo thu tu folder tu tren xuong duoi. Dang nhap demo: tenantCode=demo, admin@demo.vn / Demo@123.\nCac request Tenants can superAdminToken rieng; tai khoan demo TenantAdmin dung de xac nhan 403.\nSignalR duoc cover bang endpoint negotiate cua 4 hub: orders, delivery, notifications, dashboard.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Login - TenantAdmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+            },
+            "description": "Lay token admin demo va luu tenantId/userId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "pm.collectionVariables.set(\"token\", json.accessToken);",
+                  "pm.collectionVariables.set(\"adminToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"tenantId\", json.tenant && json.tenant.id);",
+                  "pm.collectionVariables.set(\"tenantCode\", json.tenant && json.tenant.code);",
+                  "pm.collectionVariables.set(\"userId\", json.user && json.user.id);",
+                  "pm.collectionVariables.set(\"adminUserId\", json.user && json.user.id);"
+                ]
+              }
+            }
+          ],
+          "description": "Lay token admin demo va luu tenantId/userId."
+        },
+        {
+          "name": "Login - Wrong Password (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"sai-mat-khau\",\n  \"locale\": \"vi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", function () {",
+                  "  pm.expect([400]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Permissions - Sales Role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/permissions?role=Sales"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessToken\": \"{{token}}\"\n}"
+            },
+            "description": "Demo API hien chi tra success, token JWT khong bi thu hoi server-side."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "description": "Demo API hien chi tra success, token JWT khong bi thu hoi server-side."
+        }
+      ]
+    },
+    {
+      "name": "02 - Discovery / Dashboard / Demo",
+      "item": [
+        {
+          "name": "Get Metadata - Save Seed IDs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/metadata"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.tenantId) pm.collectionVariables.set(\"tenantId\", json.tenantId);",
+                  "if (json.customers && json.customers.length) pm.collectionVariables.set(\"customerId\", json.customers[0].id);",
+                  "if (json.warehouses && json.warehouses.length) pm.collectionVariables.set(\"warehouseId\", json.warehouses[0].id);",
+                  "if (json.skus && json.skus.length) { pm.collectionVariables.set(\"skuId\", json.skus[0].id); pm.collectionVariables.set(\"skuCode\", json.skus[0].code); }",
+                  "if (json.drivers && json.drivers.length) pm.collectionVariables.set(\"driverId\", json.drivers[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Reports Dashboard Alias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reports/dashboard"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Demo Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/demo/readiness"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Tenants",
+      "item": [
+        {
+          "name": "TenantAdmin List Tenants - Expected 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants",
+            "description": "Tai khoan demo TenantAdmin khong co quyen tenants.manage."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", function () {",
+                  "  pm.expect([403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "description": "Tai khoan demo TenantAdmin khong co quyen tenants.manage."
+        },
+        {
+          "name": "SuperAdmin List Tenants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{superAdminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Gan superAdminToken neu co user SuperAdmin. Neu de trong se 401/403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 / 401 / 403\", function () {",
+                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "description": "Gan superAdminToken neu co user SuperAdmin. Neu de trong se 401/403."
+        },
+        {
+          "name": "SuperAdmin Get Tenant By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants/{{tenantId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{superAdminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 / 401 / 403\", function () {",
+                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SuperAdmin Create Tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tenants",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{superAdminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"pm{{$timestamp}}\",\n  \"name\": \"Postman Tenant {{$timestamp}}\",\n  \"plan\": \"Starter\",\n  \"status\": \"Trial\",\n  \"userLimit\": 10,\n  \"orderLimit\": 1000,\n  \"warehouseLimit\": 2,\n  \"defaultLocale\": \"vi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 / 401 / 403\", function () {",
+                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"tenantToDeleteId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SuperAdmin Update Tenant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tenants/{{tenantToDeleteId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{superAdminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Tenant Updated\",\n  \"plan\": \"Growth\",\n  \"status\": \"Active\",\n  \"userLimit\": 20,\n  \"orderLimit\": 5000,\n  \"warehouseLimit\": 3,\n  \"defaultLocale\": \"vi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 / 401 / 403 / 404\", function () {",
+                  "  pm.expect([200,401,403,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Tenant CRUD yeu cau SuperAdmin. Du an seed mac dinh khong co SuperAdmin token."
+    },
+    {
+      "name": "04 - Users",
+      "item": [
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) pm.collectionVariables.set(\"anyUserId\", json[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Users - Filter Role Driver",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users?role=Driver&isActive=true"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) pm.collectionVariables.set(\"driverId\", json[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create User - Sales",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Nhan vien Postman {{$timestamp}}\",\n  \"email\": \"pm-sales-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"testUserId\", json.id);",
+                  "if (json.email) pm.collectionVariables.set(\"testUserEmail\", json.email);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update User - Sales",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{testUserId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nhan vien Postman Updated\",\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"testUserId\", json.id);",
+                  "if (json.email) pm.collectionVariables.set(\"testUserEmail\", json.email);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{testUserId}}/deactivate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activate User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{testUserId}}/activate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Mo khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Customers",
+      "item": [
+        {
+          "name": "Get Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/customers"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) pm.collectionVariables.set(\"customerId\", json[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customers - Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/customers?search=khach"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/customers/{{customerId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/customers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Khach Postman {{$timestamp}}\",\n  \"phone\": \"090{{$timestamp}}\",\n  \"email\": \"postman-{{$timestamp}}@demo.vn\",\n  \"address\": \"1 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"Retail\",\n  \"note\": \"Tao tu Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"customerId\", json.id);",
+                  "if (json.phone) pm.collectionVariables.set(\"customerPhone\", json.phone);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/customers/{{customerId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Khach Postman Updated\",\n  \"phone\": \"{{customerPhone}}\",\n  \"email\": \"postman-updated@example.vn\",\n  \"address\": \"2 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"VIP\",\n  \"note\": \"Cap nhat tu Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"customerId\", json.id);",
+                  "if (json.phone) pm.collectionVariables.set(\"customerPhone\", json.phone);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Warehouses",
+      "item": [
+        {
+          "name": "Get Warehouses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/warehouses"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) pm.collectionVariables.set(\"warehouseId\", json[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Warehouse By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Warehouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/warehouses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-WH-{{$timestamp}}\",\n  \"name\": \"Kho Postman {{$timestamp}}\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test\",\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"warehouseId\", json.id);",
+                  "if (json.code) pm.collectionVariables.set(\"warehouseCode\", json.code);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Warehouse",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{warehouseCode}}\",\n  \"name\": \"Kho Postman Updated\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test Updated\",\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"warehouseId\", json.id);",
+                  "if (json.code) pm.collectionVariables.set(\"warehouseCode\", json.code);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Products / Import",
+      "item": [
+        {
+          "name": "Get Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) {",
+                  "  pm.collectionVariables.set(\"productId\", json[0].id);",
+                  "  pm.collectionVariables.set(\"productCode\", json[0].code);",
+                  "  if (json[0].skus && json[0].skus.length) { pm.collectionVariables.set(\"skuId\", json[0].skus[0].id); pm.collectionVariables.set(\"skuCode\", json[0].skus[0].skuCode); pm.collectionVariables.set(\"barcode\", json[0].skus[0].barcode); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Products - Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products?search=sku"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-PROD-{{$timestamp}}\",\n  \"name\": \"San pham Postman {{$timestamp}}\",\n  \"category\": \"Test\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"PM-SKU-{{$timestamp}}\",\n      \"barcode\": \"PM-BC-{{$timestamp}}\",\n      \"name\": \"Ban tieu chuan\",\n      \"unit\": \"pcs\",\n      \"price\": 120000,\n      \"lowStockThreshold\": 5\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"productId\", json.id);",
+                  "if (json.code) pm.collectionVariables.set(\"productCode\", json.code);",
+                  "if (json.skus && json.skus.length) {",
+                  "  pm.collectionVariables.set(\"skuId\", json.skus[0].id);",
+                  "  pm.collectionVariables.set(\"skuCode\", json.skus[0].skuCode);",
+                  "  pm.collectionVariables.set(\"barcode\", json.skus[0].barcode);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{productCode}}\",\n  \"name\": \"San pham Postman Updated\",\n  \"category\": \"Test Updated\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"{{skuCode}}\",\n      \"barcode\": \"{{barcode}}\",\n      \"name\": \"Ban tieu chuan updated\",\n      \"unit\": \"pcs\",\n      \"price\": 125000,\n      \"lowStockThreshold\": 7\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"productId\", json.id);",
+                  "if (json.code) pm.collectionVariables.set(\"productCode\", json.code);",
+                  "if (json.skus && json.skus.length) {",
+                  "  pm.collectionVariables.set(\"skuId\", json.skus[0].id);",
+                  "  pm.collectionVariables.set(\"skuCode\", json.skus[0].skuCode);",
+                  "  pm.collectionVariables.set(\"barcode\", json.skus[0].barcode);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Import Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/import/products",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"products\": [\n    {\n      \"code\": \"IMP-PM-{{$timestamp}}\",\n      \"name\": \"Import Product Postman {{$timestamp}}\",\n      \"category\": \"Import\",\n      \"isActive\": true,\n      \"skus\": [\n        {\n          \"skuCode\": \"IMP-SKU-{{$timestamp}}\",\n          \"barcode\": \"IMP-BC-{{$timestamp}}\",\n          \"name\": \"Import SKU\",\n          \"unit\": \"pcs\",\n          \"price\": 99000,\n          \"lowStockThreshold\": 3\n        }\n      ]\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 - Inventory",
+      "item": [
+        {
+          "name": "Get Inventory Stocks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/inventory/stocks"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Inventory Stocks - Filter Warehouse/Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/inventory/stocks?warehouseId={{warehouseId}}&search={{skuCode}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stock In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/inventory/stock-in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 25,\n  \"referenceCode\": \"PM-STOCK-IN-{{$timestamp}}\",\n  \"note\": \"Nhap kho test tu Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stock Out Manual",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/inventory/stock-out",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 1,\n  \"referenceCode\": \"PM-STOCK-OUT-{{$timestamp}}\",\n  \"note\": \"Xuat kho thu cong tu Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Adjust Inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/inventory/adjustments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 30,\n  \"referenceCode\": \"PM-ADJUST-{{$timestamp}}\",\n  \"note\": \"Dieu chinh ton kho tu Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Inventory Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/inventory/transactions?warehouseId={{warehouseId}}&skuId={{skuId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 - Orders",
+      "item": [
+        {
+          "name": "Get Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders?page=1&pageSize=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.items && json.items.length) pm.collectionVariables.set(\"seedOrderId\", json.items[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Orders - Filter Draft",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders?status=Draft&page=1&pageSize=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cod\",\n  \"discount\": 0,\n  \"shippingFee\": 15000,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"1 Duong Test, Ha Noi\",\n  \"internalNote\": \"Don tao tu Postman\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"orderId\", json.id);",
+                  "if (json.orderCode) pm.collectionVariables.set(\"orderCode\", json.orderCode);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Order By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/confirm",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Confirm tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Order Status - WaitingPick",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"WaitingPick\",\n  \"note\": \"Chuyen sang cho pick tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Order - For Cancel Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cash\",\n  \"discount\": 0,\n  \"shippingFee\": 0,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"Dia chi huy don\",\n  \"internalNote\": \"Don dung de test cancel\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"cancelOrderId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{cancelOrderId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Huy don test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 - Pick & Pack",
+      "item": [
+        {
+          "name": "Get Picklists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/picklists"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Picklists - Status Open",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/picklists?status=Open"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Picklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/picklists",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"assignedToUserId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"pickListId\", json.id);",
+                  "if (json.items && json.items.length) {",
+                  "  pm.collectionVariables.set(\"pickSkuId\", json.items[0].skuId);",
+                  "  pm.collectionVariables.set(\"pickSkuCode\", json.items[0].skuCode);",
+                  "  pm.collectionVariables.set(\"pickBarcode\", json.items[0].barcode);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Picklist By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/picklists/{{pickListId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"pickListId\", json.id);",
+                  "if (json.items && json.items.length) {",
+                  "  pm.collectionVariables.set(\"pickSkuId\", json.items[0].skuId);",
+                  "  pm.collectionVariables.set(\"pickSkuCode\", json.items[0].skuCode);",
+                  "  pm.collectionVariables.set(\"pickBarcode\", json.items[0].barcode);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scan Pick Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/picklists/{{pickListId}}/scan",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skuId\": \"{{pickSkuId}}\",\n  \"skuCode\": \"{{pickSkuCode}}\",\n  \"barcode\": \"{{pickBarcode}}\",\n  \"quantity\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"pickListId\", json.id);",
+                  "if (json.items && json.items.length) {",
+                  "  pm.collectionVariables.set(\"pickSkuId\", json.items[0].skuId);",
+                  "  pm.collectionVariables.set(\"pickSkuCode\", json.items[0].skuCode);",
+                  "  pm.collectionVariables.set(\"pickBarcode\", json.items[0].barcode);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/packages"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Package - Mark Ready To Ship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/packages",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"weightKg\": 1.2,\n  \"lengthCm\": 30,\n  \"widthCm\": 20,\n  \"heightCm\": 12,\n  \"markReadyToShip\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"packageId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Packages - By Order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/packages?orderId={{orderId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11 - Delivery / POD",
+      "item": [
+        {
+          "name": "Get Shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/delivery/shipments"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) {",
+                  "  const currentOrderId = pm.collectionVariables.get(\"orderId\");",
+                  "  const shipment = json.find(item => item.orderId === currentOrderId) || json[0];",
+                  "  pm.collectionVariables.set(\"shipmentId\", shipment.id);",
+                  "  if (shipment.driverId) pm.collectionVariables.set(\"driverId\", shipment.driverId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign Shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/delivery/shipments/{{shipmentId}}/assign",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"routeName\": \"Tuyen Postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver Update Shipment Status - InTransit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/driver/shipments/{{shipmentId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"InTransit\",\n  \"note\": \"Dang giao tu Postman\",\n  \"collectedAmount\": null\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload POD - Delivery Alias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/delivery/shipments/{{shipmentId}}/pod",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"/pod/postman-delivery.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Giao thanh cong\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload POD - Driver Alias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/driver/shipments/{{shipmentId}}/pod",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"/pod/postman-driver.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Alias driver POD\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Proof Of Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proof-of-deliveries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Proof Of Deliveries - By Shipment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/proof-of-deliveries?shipmentId={{shipmentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12 - COD / Finance",
+      "item": [
+        {
+          "name": "Get COD Collections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/cod/collections"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (Array.isArray(json) && json.length) {",
+                  "  const currentOrderId = pm.collectionVariables.get(\"orderId\");",
+                  "  const collection = json.find(item => item.orderId === currentOrderId) || json[0];",
+                  "  pm.collectionVariables.set(\"codCollectionId\", collection.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reconcile COD",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cod/reconcile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codCollectionIds\": [\n    \"{{codCollectionId}}\"\n  ],\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13 - Returns",
+      "item": [
+        {
+          "name": "Get Returns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/returns"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Return",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/returns",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"orderId\": \"{{orderId}}\",\n  \"reason\": \"Khach yeu cau doi tra tu Postman\",\n  \"refundAmount\": 0\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"returnId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Return By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/returns/{{returnId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Return Status - Approved",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/returns/{{returnId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Approved\",\n  \"note\": \"Duyet return tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"returnId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Return Status - Received",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/returns/{{returnId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Received\",\n  \"note\": \"Da nhan hang hoan\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"returnId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Returns - Status Received",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/returns?status=Received"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14 - Reports / Exports",
+      "item": [
+        {
+          "name": "Get Export Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/exports"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Export Job - Orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/exports",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"orders\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"exportJobId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Export Job - Inventory Alias reports/export",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reports/export",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"inventory\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "if (json.id) pm.collectionVariables.set(\"exportJobId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Export Jobs - After Create",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/exports"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "15 - AI",
+      "item": [
+        {
+          "name": "Ask AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/ai/chat",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"question\": \"Tong hop nhanh tinh hinh don hang va canh bao ton kho?\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16 - Realtime SignalR Negotiate",
+      "item": [
+        {
+          "name": "Negotiate Orders Hub",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/orders/negotiate?negotiateVersion=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negotiate Delivery Hub",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/delivery/negotiate?negotiateVersion=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negotiate Notifications Hub",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/notifications/negotiate?negotiateVersion=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negotiate Dashboard Hub",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/hubs/dashboard/negotiate?negotiateVersion=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Postman HTTP collection chi kiem tra negotiate cua SignalR. De test message realtime can dung SignalR client."
+    },
+    {
+      "name": "17 - Security Tests",
+      "item": [
+        {
+          "name": "TenantAdmin Cannot Create SuperAdmin - Expected 400/403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Super Admin Test\",\n  \"email\": \"superadmin-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"SuperAdmin\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400 / 403\", function () {",
+                  "  pm.expect([400,403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cross Tenant Query Blocked - Expected 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/warehouses?tenantId=00000000-0000-0000-0000-000000000001"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", function () {",
+                  "  pm.expect([403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Sales",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"sales@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "pm.collectionVariables.set(\"salesToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"salesUserId\", json.user && json.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sales Cannot Get Users - Expected 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{salesToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", function () {",
+                  "  pm.expect([403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - Driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"driver1@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "pm.collectionVariables.set(\"driverToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"driverId\", json.user && json.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver Cannot Get Dashboard - Expected 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{driverToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", function () {",
+                  "  pm.expect([403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "18 - Cleanup / Destructive",
+      "item": [
+        {
+          "name": "Delete Test User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{testUserId}}?deletedByUserId={{adminUserId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 / 404\", function () {",
+                  "  pm.expect([204,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/customers/{{customerId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 / 404\", function () {",
+                  "  pm.expect([204,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/products/{{productId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 / 404\", function () {",
+                  "  pm.expect([204,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Warehouse",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 / 404\", function () {",
+                  "  pm.expect([204,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SuperAdmin Delete Tenant",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants/{{tenantToDeleteId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{superAdminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Chi chay khi da tao tenant bang superAdminToken."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 / 401 / 403 / 404\", function () {",
+                  "  pm.expect([204,401,403,404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "description": "Chi chay khi da tao tenant bang superAdminToken."
+        }
+      ],
+      "description": "Nhom nay xoa du lieu test da tao. Nen chay cuoi cung hoac chay rieng khi can don du lieu in-memory."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5123",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driverToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantCode",
+      "value": "demo",
+      "type": "string"
+    },
+    {
+      "key": "tenantToDeleteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerPhone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "warehouseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "warehouseCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "skuId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "skuCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "barcode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cancelOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seedOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pickListId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pickSkuId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pickSkuCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pickBarcode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "packageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "shipmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driverId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "codCollectionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "returnId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "exportJobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testUserEmail",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
