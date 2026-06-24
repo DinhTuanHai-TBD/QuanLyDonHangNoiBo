@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "b1fd9d5f-5c1c-4de5-861b-29e4f0fdb001",
-    "name": "QuanLyDonHangNoiBo API - All Features",
-    "description": "Collection test tat ca tinh nang HTTP cua du an QuanLyDonHangNoiBo.\nChay theo thu tu folder tu tren xuong duoi. Dang nhap demo: tenantCode=demo, admin@demo.vn / Demo@123.\nCac request Tenants can superAdminToken rieng; tai khoan demo TenantAdmin dung de xac nhan 403.\nSignalR duoc cover bang endpoint negotiate cua 4 hub: orders, delivery, notifications, dashboard.",
+    "name": "QuanLyDonHangNoiBo API - All Features - Tất cả chức năng",
+    "description": "Collection test tat ca tinh nang HTTP cua du an QuanLyDonHangNoiBo.\nChay theo thu tu folder tu tren xuong duoi. Dang nhap theo phan quyen bang POST /api/auth/login; chon email dung role can test va dung accessToken tra ve.\nCac request Tenants dung superAdminToken tu request Login - SuperAdmin; tai khoan TenantAdmin dung de xac nhan 403.\nSignalR duoc cover bang endpoint negotiate cua 4 hub: orders, delivery, notifications, dashboard.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -17,10 +17,10 @@
   },
   "item": [
     {
-      "name": "01 - Auth",
+      "name": "01 - Auth - Đăng nhập",
       "item": [
         {
-          "name": "Login - TenantAdmin",
+          "name": "Login - TenantAdmin - Đăng nhập quản trị đơn vị",
           "request": {
             "method": "POST",
             "header": [
@@ -35,9 +35,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "Lay token admin demo va luu tenantId/userId."
+            "description": "Dang nhap role TenantAdmin va luu accessToken, tenantId, userId."
           },
           "event": [
             {
@@ -60,10 +65,10 @@
               }
             }
           ],
-          "description": "Lay token admin demo va luu tenantId/userId."
+          "description": "Dang nhap role TenantAdmin va luu accessToken, tenantId, userId."
         },
         {
-          "name": "Login - Wrong Password (400)",
+          "name": "Login - SuperAdmin - Đăng nhập quản trị hệ thống",
           "request": {
             "method": "POST",
             "header": [
@@ -78,7 +83,58 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"sai-mat-khau\",\n  \"locale\": \"vi\"\n}"
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"superadmin@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Dang nhap role SuperAdmin va luu superAdminToken de test nhom Tenants."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "pm.collectionVariables.set(\"superAdminToken\", json.accessToken);",
+                  "pm.collectionVariables.set(\"superAdminUserId\", json.user && json.user.id);",
+                  "pm.collectionVariables.set(\"tenantId\", json.tenant && json.tenant.id);",
+                  "pm.collectionVariables.set(\"tenantCode\", json.tenant && json.tenant.code);"
+                ]
+              }
+            }
+          ],
+          "description": "Dang nhap role SuperAdmin va luu superAdminToken de test nhom Tenants."
+        },
+        {
+          "name": "Login - Wrong Password (400) - Đăng nhập sai mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"admin@demo.vn\",\n  \"password\": \"sai-mat-khau\",\n  \"locale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -96,7 +152,7 @@
           ]
         },
         {
-          "name": "Get Permissions - Sales Role",
+          "name": "Get Permissions - Sales Role - Lấy quyền vai trò bán hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -117,7 +173,7 @@
           ]
         },
         {
-          "name": "Logout",
+          "name": "Logout - Đăng xuất",
           "request": {
             "method": "POST",
             "header": [
@@ -129,7 +185,12 @@
             "url": "{{baseUrl}}/api/auth/logout",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"accessToken\": \"{{token}}\"\n}"
+              "raw": "{\n  \"accessToken\": \"{{token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "description": "Demo API hien chi tra success, token JWT khong bi thu hoi server-side."
           },
@@ -151,10 +212,10 @@
       ]
     },
     {
-      "name": "02 - Discovery / Dashboard / Demo",
+      "name": "02 - Discovery / Dashboard - Khám phá / Bảng điều khiển",
       "item": [
         {
-          "name": "Get Metadata - Save Seed IDs",
+          "name": "Get Metadata - Save Seed IDs - Lấy dữ liệu nền và lưu ID mẫu",
           "request": {
             "method": "GET",
             "header": [],
@@ -182,7 +243,7 @@
           ]
         },
         {
-          "name": "Get Dashboard",
+          "name": "Get Dashboard - Lấy bảng điều khiển",
           "request": {
             "method": "GET",
             "header": [],
@@ -203,7 +264,7 @@
           ]
         },
         {
-          "name": "Get Reports Dashboard Alias",
+          "name": "Get Reports Dashboard Alias - Lấy dashboard qua alias báo cáo",
           "request": {
             "method": "GET",
             "header": [],
@@ -224,7 +285,7 @@
           ]
         },
         {
-          "name": "Get Notifications",
+          "name": "Get Notifications - Lấy thông báo",
           "request": {
             "method": "GET",
             "header": [],
@@ -243,40 +304,19 @@
               }
             }
           ]
-        },
-        {
-          "name": "Get Demo Readiness",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/api/demo/readiness"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", function () {",
-                  "  pm.expect([200]).to.include(pm.response.code);",
-                  "});"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
     {
-      "name": "03 - Tenants",
+      "name": "03 - Tenants - Đơn vị thuê",
       "item": [
         {
-          "name": "TenantAdmin List Tenants - Expected 403",
+          "name": "TenantAdmin List Tenants - Expected 403 - Quản trị đơn vị xem danh sách tenant bị chặn",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/tenants",
-            "description": "Tai khoan demo TenantAdmin khong co quyen tenants.manage."
+            "description": "Tai khoan role TenantAdmin khong co quyen tenants.manage."
           },
           "event": [
             {
@@ -291,10 +331,10 @@
               }
             }
           ],
-          "description": "Tai khoan demo TenantAdmin khong co quyen tenants.manage."
+          "description": "Tai khoan role TenantAdmin khong co quyen tenants.manage."
         },
         {
-          "name": "SuperAdmin List Tenants",
+          "name": "SuperAdmin List Tenants - Quản trị hệ thống xem danh sách tenant",
           "request": {
             "method": "GET",
             "header": [],
@@ -309,7 +349,7 @@
                 }
               ]
             },
-            "description": "Gan superAdminToken neu co user SuperAdmin. Neu de trong se 401/403."
+            "description": "Chay sau request Login - SuperAdmin de dung superAdminToken."
           },
           "event": [
             {
@@ -317,17 +357,17 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200 / 401 / 403\", function () {",
-                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
                   "});"
                 ]
               }
             }
           ],
-          "description": "Gan superAdminToken neu co user SuperAdmin. Neu de trong se 401/403."
+          "description": "Chay sau request Login - SuperAdmin de dung superAdminToken."
         },
         {
-          "name": "SuperAdmin Get Tenant By Id",
+          "name": "SuperAdmin Get Tenant By Id - Quản trị hệ thống xem tenant theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -349,8 +389,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200 / 401 / 403\", function () {",
-                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
                   "});"
                 ]
               }
@@ -358,7 +398,7 @@
           ]
         },
         {
-          "name": "SuperAdmin Create Tenant",
+          "name": "SuperAdmin Create Tenant - Quản trị hệ thống tạo tenant",
           "request": {
             "method": "POST",
             "header": [
@@ -380,7 +420,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"pm{{$timestamp}}\",\n  \"name\": \"Postman Tenant {{$timestamp}}\",\n  \"plan\": \"Starter\",\n  \"status\": \"Trial\",\n  \"userLimit\": 10,\n  \"orderLimit\": 1000,\n  \"warehouseLimit\": 2,\n  \"defaultLocale\": \"vi\"\n}"
+              "raw": "{\n  \"code\": \"pm{{$timestamp}}\",\n  \"name\": \"Postman Tenant {{$timestamp}}\",\n  \"plan\": \"Starter\",\n  \"status\": \"Trial\",\n  \"userLimit\": 10,\n  \"orderLimit\": 1000,\n  \"warehouseLimit\": 2,\n  \"defaultLocale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -389,8 +434,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200 / 401 / 403\", function () {",
-                  "  pm.expect([200,401,403]).to.include(pm.response.code);",
+                  "pm.test(\"Status 200\", function () {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
                   "});",
                   "let json = {};",
                   "try { json = pm.response.json(); } catch (e) { json = {}; }",
@@ -401,7 +446,7 @@
           ]
         },
         {
-          "name": "SuperAdmin Update Tenant",
+          "name": "SuperAdmin Update Tenant - Quản trị hệ thống cập nhật tenant",
           "request": {
             "method": "PUT",
             "header": [
@@ -423,7 +468,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Postman Tenant Updated\",\n  \"plan\": \"Growth\",\n  \"status\": \"Active\",\n  \"userLimit\": 20,\n  \"orderLimit\": 5000,\n  \"warehouseLimit\": 3,\n  \"defaultLocale\": \"vi\"\n}"
+              "raw": "{\n  \"name\": \"Postman Tenant Updated\",\n  \"plan\": \"Growth\",\n  \"status\": \"Active\",\n  \"userLimit\": 20,\n  \"orderLimit\": 5000,\n  \"warehouseLimit\": 3,\n  \"defaultLocale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -432,8 +482,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200 / 401 / 403 / 404\", function () {",
-                  "  pm.expect([200,401,403,404]).to.include(pm.response.code);",
+                  "pm.test(\"Status 200 / 404\", function () {",
+                  "  pm.expect([200,404]).to.include(pm.response.code);",
                   "});"
                 ]
               }
@@ -441,13 +491,13 @@
           ]
         }
       ],
-      "description": "Tenant CRUD yeu cau SuperAdmin. Du an seed mac dinh khong co SuperAdmin token."
+      "description": "Tenant CRUD yeu cau SuperAdmin. Chay request Login - SuperAdmin truoc de lay superAdminToken."
     },
     {
-      "name": "04 - Users",
+      "name": "04 - Users - Người dùng",
       "item": [
         {
-          "name": "Get Users",
+          "name": "Get Users - Lấy danh sách người dùng",
           "request": {
             "method": "GET",
             "header": [],
@@ -471,7 +521,7 @@
           ]
         },
         {
-          "name": "Get Users - Filter Role Driver",
+          "name": "Get Users - Filter Role Driver - Lọc người dùng vai trò tài xế",
           "request": {
             "method": "GET",
             "header": [],
@@ -495,7 +545,7 @@
           ]
         },
         {
-          "name": "Get User By Id",
+          "name": "Get User By Id - Lấy người dùng theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -516,7 +566,7 @@
           ]
         },
         {
-          "name": "Create User - Sales",
+          "name": "Create User - Sales - Tạo người dùng bán hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -528,7 +578,12 @@
             "url": "{{baseUrl}}/api/users",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Nhan vien Postman {{$timestamp}}\",\n  \"email\": \"pm-sales-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Nhan vien Postman {{$timestamp}}\",\n  \"email\": \"pm-sales-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -550,7 +605,7 @@
           ]
         },
         {
-          "name": "Update User - Sales",
+          "name": "Update User - Sales - Cập nhật người dùng bán hàng",
           "request": {
             "method": "PUT",
             "header": [
@@ -562,7 +617,12 @@
             "url": "{{baseUrl}}/api/users/{{testUserId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Nhan vien Postman Updated\",\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"fullName\": \"Nhan vien Postman Updated\",\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"\",\n  \"role\": \"Sales\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -584,7 +644,7 @@
           ]
         },
         {
-          "name": "Deactivate User",
+          "name": "Deactivate User - Vô hiệu hóa người dùng",
           "request": {
             "method": "POST",
             "header": [
@@ -596,7 +656,12 @@
             "url": "{{baseUrl}}/api/users/{{testUserId}}/deactivate",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"note\": \"Khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"note\": \"Khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -614,7 +679,7 @@
           ]
         },
         {
-          "name": "Activate User",
+          "name": "Activate User - Kích hoạt người dùng",
           "request": {
             "method": "POST",
             "header": [
@@ -626,7 +691,12 @@
             "url": "{{baseUrl}}/api/users/{{testUserId}}/activate",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"note\": \"Mo khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"note\": \"Mo khoa user test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -646,10 +716,10 @@
       ]
     },
     {
-      "name": "05 - Customers",
+      "name": "05 - Customers - Khách hàng",
       "item": [
         {
-          "name": "Get Customers",
+          "name": "Get Customers - Lấy danh sách khách hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -673,7 +743,7 @@
           ]
         },
         {
-          "name": "Get Customers - Search",
+          "name": "Get Customers - Search - Tìm kiếm khách hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -694,7 +764,7 @@
           ]
         },
         {
-          "name": "Get Customer By Id",
+          "name": "Get Customer By Id - Lấy khách hàng theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -715,7 +785,7 @@
           ]
         },
         {
-          "name": "Create Customer",
+          "name": "Create Customer - Tạo khách hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -727,7 +797,12 @@
             "url": "{{baseUrl}}/api/customers",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Khach Postman {{$timestamp}}\",\n  \"phone\": \"090{{$timestamp}}\",\n  \"email\": \"postman-{{$timestamp}}@demo.vn\",\n  \"address\": \"1 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"Retail\",\n  \"note\": \"Tao tu Postman\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Khach Postman {{$timestamp}}\",\n  \"phone\": \"090{{$timestamp}}\",\n  \"email\": \"postman-{{$timestamp}}@demo.vn\",\n  \"address\": \"1 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"Retail\",\n  \"note\": \"Tao tu Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -749,7 +824,7 @@
           ]
         },
         {
-          "name": "Update Customer",
+          "name": "Update Customer - Cập nhật khách hàng",
           "request": {
             "method": "PUT",
             "header": [
@@ -761,7 +836,12 @@
             "url": "{{baseUrl}}/api/customers/{{customerId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Khach Postman Updated\",\n  \"phone\": \"{{customerPhone}}\",\n  \"email\": \"postman-updated@example.vn\",\n  \"address\": \"2 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"VIP\",\n  \"note\": \"Cap nhat tu Postman\"\n}"
+              "raw": "{\n  \"name\": \"Khach Postman Updated\",\n  \"phone\": \"{{customerPhone}}\",\n  \"email\": \"postman-updated@example.vn\",\n  \"address\": \"2 Duong Test\",\n  \"province\": \"Ha Noi\",\n  \"segment\": \"VIP\",\n  \"note\": \"Cap nhat tu Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -785,10 +865,10 @@
       ]
     },
     {
-      "name": "06 - Warehouses",
+      "name": "06 - Warehouses - Kho hàng",
       "item": [
         {
-          "name": "Get Warehouses",
+          "name": "Get Warehouses - Lấy danh sách kho",
           "request": {
             "method": "GET",
             "header": [],
@@ -812,7 +892,7 @@
           ]
         },
         {
-          "name": "Get Warehouse By Id",
+          "name": "Get Warehouse By Id - Lấy kho theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -833,7 +913,7 @@
           ]
         },
         {
-          "name": "Create Warehouse",
+          "name": "Create Warehouse - Tạo kho",
           "request": {
             "method": "POST",
             "header": [
@@ -845,7 +925,12 @@
             "url": "{{baseUrl}}/api/warehouses",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-WH-{{$timestamp}}\",\n  \"name\": \"Kho Postman {{$timestamp}}\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-WH-{{$timestamp}}\",\n  \"name\": \"Kho Postman {{$timestamp}}\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -867,7 +952,7 @@
           ]
         },
         {
-          "name": "Update Warehouse",
+          "name": "Update Warehouse - Cập nhật kho",
           "request": {
             "method": "PUT",
             "header": [
@@ -879,7 +964,12 @@
             "url": "{{baseUrl}}/api/warehouses/{{warehouseId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{warehouseCode}}\",\n  \"name\": \"Kho Postman Updated\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test Updated\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"code\": \"{{warehouseCode}}\",\n  \"name\": \"Kho Postman Updated\",\n  \"province\": \"Ha Noi\",\n  \"address\": \"KCN Test Updated\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -903,10 +993,10 @@
       ]
     },
     {
-      "name": "07 - Products / Import",
+      "name": "07 - Products / Import - Sản phẩm / Nhập dữ liệu",
       "item": [
         {
-          "name": "Get Products",
+          "name": "Get Products - Lấy danh sách sản phẩm",
           "request": {
             "method": "GET",
             "header": [],
@@ -934,7 +1024,7 @@
           ]
         },
         {
-          "name": "Get Products - Search",
+          "name": "Get Products - Search - Tìm kiếm sản phẩm",
           "request": {
             "method": "GET",
             "header": [],
@@ -955,7 +1045,7 @@
           ]
         },
         {
-          "name": "Get Product By Id",
+          "name": "Get Product By Id - Lấy sản phẩm theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -976,7 +1066,7 @@
           ]
         },
         {
-          "name": "Create Product",
+          "name": "Create Product - Tạo sản phẩm",
           "request": {
             "method": "POST",
             "header": [
@@ -988,7 +1078,12 @@
             "url": "{{baseUrl}}/api/products",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-PROD-{{$timestamp}}\",\n  \"name\": \"San pham Postman {{$timestamp}}\",\n  \"category\": \"Test\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"PM-SKU-{{$timestamp}}\",\n      \"barcode\": \"PM-BC-{{$timestamp}}\",\n      \"name\": \"Ban tieu chuan\",\n      \"unit\": \"pcs\",\n      \"price\": 120000,\n      \"lowStockThreshold\": 5\n    }\n  ]\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"code\": \"PM-PROD-{{$timestamp}}\",\n  \"name\": \"San pham Postman {{$timestamp}}\",\n  \"category\": \"Test\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"PM-SKU-{{$timestamp}}\",\n      \"barcode\": \"PM-BC-{{$timestamp}}\",\n      \"name\": \"Ban tieu chuan\",\n      \"unit\": \"pcs\",\n      \"price\": 120000,\n      \"lowStockThreshold\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1015,7 +1110,7 @@
           ]
         },
         {
-          "name": "Update Product",
+          "name": "Update Product - Cập nhật sản phẩm",
           "request": {
             "method": "PUT",
             "header": [
@@ -1027,7 +1122,12 @@
             "url": "{{baseUrl}}/api/products/{{productId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{productCode}}\",\n  \"name\": \"San pham Postman Updated\",\n  \"category\": \"Test Updated\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"{{skuCode}}\",\n      \"barcode\": \"{{barcode}}\",\n      \"name\": \"Ban tieu chuan updated\",\n      \"unit\": \"pcs\",\n      \"price\": 125000,\n      \"lowStockThreshold\": 7\n    }\n  ]\n}"
+              "raw": "{\n  \"code\": \"{{productCode}}\",\n  \"name\": \"San pham Postman Updated\",\n  \"category\": \"Test Updated\",\n  \"isActive\": true,\n  \"skus\": [\n    {\n      \"skuCode\": \"{{skuCode}}\",\n      \"barcode\": \"{{barcode}}\",\n      \"name\": \"Ban tieu chuan updated\",\n      \"unit\": \"pcs\",\n      \"price\": 125000,\n      \"lowStockThreshold\": 7\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1054,7 +1154,7 @@
           ]
         },
         {
-          "name": "Import Products",
+          "name": "Import Products - Nhập danh sách sản phẩm",
           "request": {
             "method": "POST",
             "header": [
@@ -1066,7 +1166,12 @@
             "url": "{{baseUrl}}/api/import/products",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"products\": [\n    {\n      \"code\": \"IMP-PM-{{$timestamp}}\",\n      \"name\": \"Import Product Postman {{$timestamp}}\",\n      \"category\": \"Import\",\n      \"isActive\": true,\n      \"skus\": [\n        {\n          \"skuCode\": \"IMP-SKU-{{$timestamp}}\",\n          \"barcode\": \"IMP-BC-{{$timestamp}}\",\n          \"name\": \"Import SKU\",\n          \"unit\": \"pcs\",\n          \"price\": 99000,\n          \"lowStockThreshold\": 3\n        }\n      ]\n    }\n  ]\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"products\": [\n    {\n      \"code\": \"IMP-PM-{{$timestamp}}\",\n      \"name\": \"Import Product Postman {{$timestamp}}\",\n      \"category\": \"Import\",\n      \"isActive\": true,\n      \"skus\": [\n        {\n          \"skuCode\": \"IMP-SKU-{{$timestamp}}\",\n          \"barcode\": \"IMP-BC-{{$timestamp}}\",\n          \"name\": \"Import SKU\",\n          \"unit\": \"pcs\",\n          \"price\": 99000,\n          \"lowStockThreshold\": 3\n        }\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1086,10 +1191,10 @@
       ]
     },
     {
-      "name": "08 - Inventory",
+      "name": "08 - Inventory - Tồn kho",
       "item": [
         {
-          "name": "Get Inventory Stocks",
+          "name": "Get Inventory Stocks - Lấy tồn kho",
           "request": {
             "method": "GET",
             "header": [],
@@ -1110,7 +1215,7 @@
           ]
         },
         {
-          "name": "Get Inventory Stocks - Filter Warehouse/Search",
+          "name": "Get Inventory Stocks - Filter Warehouse/Search - Lọc tồn kho theo kho/tìm kiếm",
           "request": {
             "method": "GET",
             "header": [],
@@ -1131,7 +1236,7 @@
           ]
         },
         {
-          "name": "Stock In",
+          "name": "Stock In - Nhập kho",
           "request": {
             "method": "POST",
             "header": [
@@ -1143,7 +1248,12 @@
             "url": "{{baseUrl}}/api/inventory/stock-in",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 25,\n  \"referenceCode\": \"PM-STOCK-IN-{{$timestamp}}\",\n  \"note\": \"Nhap kho test tu Postman\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 25,\n  \"referenceCode\": \"PM-STOCK-IN-{{$timestamp}}\",\n  \"note\": \"Nhap kho test tu Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1161,7 +1271,7 @@
           ]
         },
         {
-          "name": "Stock Out Manual",
+          "name": "Stock Out Manual - Xuất kho thủ công",
           "request": {
             "method": "POST",
             "header": [
@@ -1173,7 +1283,12 @@
             "url": "{{baseUrl}}/api/inventory/stock-out",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 1,\n  \"referenceCode\": \"PM-STOCK-OUT-{{$timestamp}}\",\n  \"note\": \"Xuat kho thu cong tu Postman\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 1,\n  \"referenceCode\": \"PM-STOCK-OUT-{{$timestamp}}\",\n  \"note\": \"Xuat kho thu cong tu Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1191,7 +1306,7 @@
           ]
         },
         {
-          "name": "Adjust Inventory",
+          "name": "Adjust Inventory - Điều chỉnh tồn kho",
           "request": {
             "method": "POST",
             "header": [
@@ -1203,7 +1318,12 @@
             "url": "{{baseUrl}}/api/inventory/adjustments",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 30,\n  \"referenceCode\": \"PM-ADJUST-{{$timestamp}}\",\n  \"note\": \"Dieu chinh ton kho tu Postman\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 30,\n  \"referenceCode\": \"PM-ADJUST-{{$timestamp}}\",\n  \"note\": \"Dieu chinh ton kho tu Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1221,7 +1341,7 @@
           ]
         },
         {
-          "name": "Get Inventory Transactions",
+          "name": "Get Inventory Transactions - Lấy giao dịch tồn kho",
           "request": {
             "method": "GET",
             "header": [],
@@ -1244,10 +1364,10 @@
       ]
     },
     {
-      "name": "09 - Orders",
+      "name": "09 - Orders - Đơn hàng",
       "item": [
         {
-          "name": "Get Orders",
+          "name": "Get Orders - Lấy danh sách đơn hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -1271,7 +1391,7 @@
           ]
         },
         {
-          "name": "Get Orders - Filter Draft",
+          "name": "Get Orders - Filter Draft - Lọc đơn hàng nháp",
           "request": {
             "method": "GET",
             "header": [],
@@ -1292,7 +1412,7 @@
           ]
         },
         {
-          "name": "Create Order",
+          "name": "Create Order - Tạo đơn hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -1304,7 +1424,12 @@
             "url": "{{baseUrl}}/api/orders",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cod\",\n  \"discount\": 0,\n  \"shippingFee\": 15000,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"1 Duong Test, Ha Noi\",\n  \"internalNote\": \"Don tao tu Postman\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cod\",\n  \"discount\": 0,\n  \"shippingFee\": 15000,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"1 Duong Test, Ha Noi\",\n  \"internalNote\": \"Don tao tu Postman\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1326,7 +1451,7 @@
           ]
         },
         {
-          "name": "Get Order By Id",
+          "name": "Get Order By Id - Lấy đơn hàng theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -1347,7 +1472,7 @@
           ]
         },
         {
-          "name": "Confirm Order",
+          "name": "Confirm Order - Xác nhận đơn hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -1359,7 +1484,12 @@
             "url": "{{baseUrl}}/api/orders/{{orderId}}/confirm",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"note\": \"Confirm tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"note\": \"Confirm tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1377,7 +1507,7 @@
           ]
         },
         {
-          "name": "Update Order Status - WaitingPick",
+          "name": "Update Order Status - WaitingPick - Cập nhật trạng thái chờ nhặt hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -1389,7 +1519,12 @@
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"WaitingPick\",\n  \"note\": \"Chuyen sang cho pick tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"status\": \"WaitingPick\",\n  \"note\": \"Chuyen sang cho pick tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1407,7 +1542,7 @@
           ]
         },
         {
-          "name": "Create Order - For Cancel Endpoint",
+          "name": "Create Order - For Cancel Endpoint - Tạo đơn để kiểm thử hủy",
           "request": {
             "method": "POST",
             "header": [
@@ -1419,7 +1554,12 @@
             "url": "{{baseUrl}}/api/orders",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cash\",\n  \"discount\": 0,\n  \"shippingFee\": 0,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"Dia chi huy don\",\n  \"internalNote\": \"Don dung de test cancel\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"customerId\": \"{{customerId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"paymentMethod\": \"Cash\",\n  \"discount\": 0,\n  \"shippingFee\": 0,\n  \"codAmount\": 0,\n  \"deliveryAddress\": \"Dia chi huy don\",\n  \"internalNote\": \"Don dung de test cancel\",\n  \"items\": [\n    {\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1440,7 +1580,7 @@
           ]
         },
         {
-          "name": "Cancel Order",
+          "name": "Cancel Order - Hủy đơn hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -1452,7 +1592,12 @@
             "url": "{{baseUrl}}/api/orders/{{cancelOrderId}}/cancel",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"note\": \"Huy don test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"note\": \"Huy don test tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1472,10 +1617,10 @@
       ]
     },
     {
-      "name": "10 - Pick & Pack",
+      "name": "10 - Pick & Pack - Nhặt hàng & Đóng gói",
       "item": [
         {
-          "name": "Get Picklists",
+          "name": "Get Picklists - Lấy danh sách phiếu nhặt hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -1496,7 +1641,7 @@
           ]
         },
         {
-          "name": "Get Picklists - Status Open",
+          "name": "Get Picklists - Status Open - Lọc phiếu nhặt hàng đang mở",
           "request": {
             "method": "GET",
             "header": [],
@@ -1517,7 +1662,7 @@
           ]
         },
         {
-          "name": "Create Picklist",
+          "name": "Create Picklist - Tạo phiếu nhặt hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -1529,7 +1674,12 @@
             "url": "{{baseUrl}}/api/picklists",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"assignedToUserId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"assignedToUserId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1555,7 +1705,7 @@
           ]
         },
         {
-          "name": "Get Picklist By Id",
+          "name": "Get Picklist By Id - Lấy phiếu nhặt hàng theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -1584,7 +1734,7 @@
           ]
         },
         {
-          "name": "Scan Pick Item",
+          "name": "Scan Pick Item - Quét hàng khi nhặt",
           "request": {
             "method": "POST",
             "header": [
@@ -1596,7 +1746,12 @@
             "url": "{{baseUrl}}/api/picklists/{{pickListId}}/scan",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"skuId\": \"{{pickSkuId}}\",\n  \"skuCode\": \"{{pickSkuCode}}\",\n  \"barcode\": \"{{pickBarcode}}\",\n  \"quantity\": 1\n}"
+              "raw": "{\n  \"skuId\": \"{{pickSkuId}}\",\n  \"skuCode\": \"{{pickSkuCode}}\",\n  \"barcode\": \"{{pickBarcode}}\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1622,7 +1777,7 @@
           ]
         },
         {
-          "name": "Get Packages",
+          "name": "Get Packages - Lấy danh sách kiện hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -1643,7 +1798,7 @@
           ]
         },
         {
-          "name": "Create Package - Mark Ready To Ship",
+          "name": "Create Package - Mark Ready To Ship - Tạo kiện và đánh dấu sẵn sàng giao",
           "request": {
             "method": "POST",
             "header": [
@@ -1655,7 +1810,12 @@
             "url": "{{baseUrl}}/api/packages",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"weightKg\": 1.2,\n  \"lengthCm\": 30,\n  \"widthCm\": 20,\n  \"heightCm\": 12,\n  \"markReadyToShip\": true\n}"
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"weightKg\": 1.2,\n  \"lengthCm\": 30,\n  \"widthCm\": 20,\n  \"heightCm\": 12,\n  \"markReadyToShip\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1676,7 +1836,7 @@
           ]
         },
         {
-          "name": "Get Packages - By Order",
+          "name": "Get Packages - By Order - Lấy kiện theo đơn hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -1699,10 +1859,10 @@
       ]
     },
     {
-      "name": "11 - Delivery / POD",
+      "name": "11 - Delivery / POD - Giao hàng / Bằng chứng giao hàng",
       "item": [
         {
-          "name": "Get Shipments",
+          "name": "Get Shipments - Lấy danh sách vận đơn",
           "request": {
             "method": "GET",
             "header": [],
@@ -1731,7 +1891,7 @@
           ]
         },
         {
-          "name": "Assign Shipment",
+          "name": "Assign Shipment - Phân công vận đơn",
           "request": {
             "method": "POST",
             "header": [
@@ -1743,7 +1903,12 @@
             "url": "{{baseUrl}}/api/delivery/shipments/{{shipmentId}}/assign",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"routeName\": \"Tuyen Postman\"\n}"
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"routeName\": \"Tuyen Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1761,7 +1926,7 @@
           ]
         },
         {
-          "name": "Driver Update Shipment Status - InTransit",
+          "name": "Driver Update Shipment Status - InTransit - Tài xế cập nhật đang vận chuyển",
           "request": {
             "method": "POST",
             "header": [
@@ -1773,7 +1938,12 @@
             "url": "{{baseUrl}}/api/driver/shipments/{{shipmentId}}/status",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"InTransit\",\n  \"note\": \"Dang giao tu Postman\",\n  \"collectedAmount\": null\n}"
+              "raw": "{\n  \"status\": \"InTransit\",\n  \"note\": \"Dang giao tu Postman\",\n  \"collectedAmount\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1791,7 +1961,7 @@
           ]
         },
         {
-          "name": "Upload POD - Delivery Alias",
+          "name": "Upload POD - Delivery Alias - Tải bằng chứng giao hàng qua alias delivery",
           "request": {
             "method": "POST",
             "header": [
@@ -1803,7 +1973,12 @@
             "url": "{{baseUrl}}/api/delivery/shipments/{{shipmentId}}/pod",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"imageUrl\": \"/pod/postman-delivery.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Giao thanh cong\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}"
+              "raw": "{\n  \"imageUrl\": \"/pod/postman-delivery.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Giao thanh cong\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1821,7 +1996,7 @@
           ]
         },
         {
-          "name": "Upload POD - Driver Alias",
+          "name": "Upload POD - Driver Alias - Tải bằng chứng giao hàng qua alias driver",
           "request": {
             "method": "POST",
             "header": [
@@ -1833,7 +2008,12 @@
             "url": "{{baseUrl}}/api/driver/shipments/{{shipmentId}}/pod",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"imageUrl\": \"/pod/postman-driver.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Alias driver POD\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}"
+              "raw": "{\n  \"imageUrl\": \"/pod/postman-driver.jpg\",\n  \"receiverName\": \"Nguoi nhan Postman\",\n  \"note\": \"Alias driver POD\",\n  \"latitude\": 21.0278,\n  \"longitude\": 105.8342,\n  \"collectedAmount\": 135000,\n  \"userId\": \"{{driverId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1851,7 +2031,7 @@
           ]
         },
         {
-          "name": "Get Proof Of Deliveries",
+          "name": "Get Proof Of Deliveries - Lấy bằng chứng giao hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -1872,7 +2052,7 @@
           ]
         },
         {
-          "name": "Get Proof Of Deliveries - By Shipment",
+          "name": "Get Proof Of Deliveries - By Shipment - Lấy bằng chứng theo vận đơn",
           "request": {
             "method": "GET",
             "header": [],
@@ -1895,10 +2075,10 @@
       ]
     },
     {
-      "name": "12 - COD / Finance",
+      "name": "12 - COD / Finance - Thu hộ / Tài chính",
       "item": [
         {
-          "name": "Get COD Collections",
+          "name": "Get COD Collections - Lấy danh sách thu hộ COD",
           "request": {
             "method": "GET",
             "header": [],
@@ -1926,7 +2106,7 @@
           ]
         },
         {
-          "name": "Reconcile COD",
+          "name": "Reconcile COD - Đối soát COD",
           "request": {
             "method": "POST",
             "header": [
@@ -1938,7 +2118,12 @@
             "url": "{{baseUrl}}/api/cod/reconcile",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"codCollectionIds\": [\n    \"{{codCollectionId}}\"\n  ],\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"codCollectionIds\": [\n    \"{{codCollectionId}}\"\n  ],\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -1958,10 +2143,10 @@
       ]
     },
     {
-      "name": "13 - Returns",
+      "name": "13 - Returns - Hoàn trả",
       "item": [
         {
-          "name": "Get Returns",
+          "name": "Get Returns - Lấy danh sách hoàn trả",
           "request": {
             "method": "GET",
             "header": [],
@@ -1982,7 +2167,7 @@
           ]
         },
         {
-          "name": "Create Return",
+          "name": "Create Return - Tạo yêu cầu hoàn trả",
           "request": {
             "method": "POST",
             "header": [
@@ -1994,7 +2179,12 @@
             "url": "{{baseUrl}}/api/returns",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"orderId\": \"{{orderId}}\",\n  \"reason\": \"Khach yeu cau doi tra tu Postman\",\n  \"refundAmount\": 0\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"orderId\": \"{{orderId}}\",\n  \"reason\": \"Khach yeu cau doi tra tu Postman\",\n  \"refundAmount\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2015,7 +2205,7 @@
           ]
         },
         {
-          "name": "Get Return By Id",
+          "name": "Get Return By Id - Lấy hoàn trả theo ID",
           "request": {
             "method": "GET",
             "header": [],
@@ -2036,7 +2226,7 @@
           ]
         },
         {
-          "name": "Update Return Status - Approved",
+          "name": "Update Return Status - Approved - Duyệt hoàn trả",
           "request": {
             "method": "POST",
             "header": [
@@ -2048,7 +2238,12 @@
             "url": "{{baseUrl}}/api/returns/{{returnId}}/status",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"Approved\",\n  \"note\": \"Duyet return tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"status\": \"Approved\",\n  \"note\": \"Duyet return tu Postman\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2069,7 +2264,7 @@
           ]
         },
         {
-          "name": "Update Return Status - Received",
+          "name": "Update Return Status - Received - Xác nhận đã nhận hàng hoàn",
           "request": {
             "method": "POST",
             "header": [
@@ -2081,7 +2276,12 @@
             "url": "{{baseUrl}}/api/returns/{{returnId}}/status",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"Received\",\n  \"note\": \"Da nhan hang hoan\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"status\": \"Received\",\n  \"note\": \"Da nhan hang hoan\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2102,7 +2302,7 @@
           ]
         },
         {
-          "name": "Get Returns - Status Received",
+          "name": "Get Returns - Status Received - Lọc hoàn trả đã nhận hàng",
           "request": {
             "method": "GET",
             "header": [],
@@ -2125,10 +2325,10 @@
       ]
     },
     {
-      "name": "14 - Reports / Exports",
+      "name": "14 - Reports / Exports - Báo cáo / Xuất dữ liệu",
       "item": [
         {
-          "name": "Get Export Jobs",
+          "name": "Get Export Jobs - Lấy danh sách job xuất dữ liệu",
           "request": {
             "method": "GET",
             "header": [],
@@ -2149,7 +2349,7 @@
           ]
         },
         {
-          "name": "Create Export Job - Orders",
+          "name": "Create Export Job - Orders - Tạo job xuất đơn hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -2161,7 +2361,12 @@
             "url": "{{baseUrl}}/api/exports",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"orders\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"orders\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2182,7 +2387,7 @@
           ]
         },
         {
-          "name": "Create Export Job - Inventory Alias reports/export",
+          "name": "Create Export Job - Inventory Alias reports/export - Tạo job xuất tồn kho qua alias báo cáo",
           "request": {
             "method": "POST",
             "header": [
@@ -2194,7 +2399,12 @@
             "url": "{{baseUrl}}/api/reports/export",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"inventory\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"exportType\": \"inventory\",\n  \"requestedByUserId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2215,7 +2425,7 @@
           ]
         },
         {
-          "name": "Get Export Jobs - After Create",
+          "name": "Get Export Jobs - After Create - Lấy job xuất sau khi tạo",
           "request": {
             "method": "GET",
             "header": [],
@@ -2238,10 +2448,10 @@
       ]
     },
     {
-      "name": "15 - AI",
+      "name": "15 - AI - Trợ lý AI",
       "item": [
         {
-          "name": "Ask AI",
+          "name": "Ask AI - Hỏi trợ lý AI",
           "request": {
             "method": "POST",
             "header": [
@@ -2253,7 +2463,12 @@
             "url": "{{baseUrl}}/api/ai/chat",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"question\": \"Tong hop nhanh tinh hinh don hang va canh bao ton kho?\",\n  \"userId\": \"{{adminUserId}}\"\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"question\": \"Tong hop nhanh tinh hinh don hang va canh bao ton kho?\",\n  \"userId\": \"{{adminUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2273,10 +2488,10 @@
       ]
     },
     {
-      "name": "16 - Realtime SignalR Negotiate",
+      "name": "16 - Realtime SignalR Negotiate - Kết nối realtime SignalR",
       "item": [
         {
-          "name": "Negotiate Orders Hub",
+          "name": "Negotiate Orders Hub - Kết nối hub đơn hàng",
           "request": {
             "method": "POST",
             "header": [],
@@ -2297,7 +2512,7 @@
           ]
         },
         {
-          "name": "Negotiate Delivery Hub",
+          "name": "Negotiate Delivery Hub - Kết nối hub giao hàng",
           "request": {
             "method": "POST",
             "header": [],
@@ -2318,7 +2533,7 @@
           ]
         },
         {
-          "name": "Negotiate Notifications Hub",
+          "name": "Negotiate Notifications Hub - Kết nối hub thông báo",
           "request": {
             "method": "POST",
             "header": [],
@@ -2339,7 +2554,7 @@
           ]
         },
         {
-          "name": "Negotiate Dashboard Hub",
+          "name": "Negotiate Dashboard Hub - Kết nối hub dashboard",
           "request": {
             "method": "POST",
             "header": [],
@@ -2363,10 +2578,10 @@
       "description": "Postman HTTP collection chi kiem tra negotiate cua SignalR. De test message realtime can dung SignalR client."
     },
     {
-      "name": "17 - Security Tests",
+      "name": "17 - Security Tests - Kiểm thử bảo mật",
       "item": [
         {
-          "name": "TenantAdmin Cannot Create SuperAdmin - Expected 400/403",
+          "name": "TenantAdmin Cannot Create SuperAdmin - Expected 400/403 - TenantAdmin không được tạo SuperAdmin",
           "request": {
             "method": "POST",
             "header": [
@@ -2378,7 +2593,12 @@
             "url": "{{baseUrl}}/api/users",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Super Admin Test\",\n  \"email\": \"superadmin-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"SuperAdmin\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"fullName\": \"Super Admin Test\",\n  \"email\": \"superadmin-{{$timestamp}}@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"role\": \"SuperAdmin\",\n  \"warehouseId\": null,\n  \"locale\": \"vi\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2396,7 +2616,7 @@
           ]
         },
         {
-          "name": "Cross Tenant Query Blocked - Expected 403",
+          "name": "Cross Tenant Query Blocked - Expected 403 - Chặn truy vấn khác tenant",
           "request": {
             "method": "GET",
             "header": [],
@@ -2417,7 +2637,7 @@
           ]
         },
         {
-          "name": "Login - Sales",
+          "name": "Login - Sales - Đăng nhập nhân viên bán hàng",
           "request": {
             "method": "POST",
             "header": [
@@ -2432,7 +2652,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"sales@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"sales@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2454,7 +2679,7 @@
           ]
         },
         {
-          "name": "Sales Cannot Get Users - Expected 403",
+          "name": "Sales Cannot Get Users - Expected 403 - Nhân viên bán hàng không được xem người dùng",
           "request": {
             "method": "GET",
             "header": [],
@@ -2485,7 +2710,7 @@
           ]
         },
         {
-          "name": "Login - Driver",
+          "name": "Login - Driver - Đăng nhập tài xế",
           "request": {
             "method": "POST",
             "header": [
@@ -2500,7 +2725,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"driver1@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}"
+              "raw": "{\n  \"tenantCode\": \"demo\",\n  \"email\": \"driver1@demo.vn\",\n  \"password\": \"Demo@123\",\n  \"locale\": \"vi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -2522,7 +2752,7 @@
           ]
         },
         {
-          "name": "Driver Cannot Get Dashboard - Expected 403",
+          "name": "Driver Cannot Get Dashboard - Expected 403 - Tài xế không được xem dashboard",
           "request": {
             "method": "GET",
             "header": [],
@@ -2555,10 +2785,10 @@
       ]
     },
     {
-      "name": "18 - Cleanup / Destructive",
+      "name": "18 - Cleanup / Destructive - Dọn dẹp / Thao tác xóa",
       "item": [
         {
-          "name": "Delete Test User",
+          "name": "Delete Test User - Xóa người dùng test",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2579,7 +2809,7 @@
           ]
         },
         {
-          "name": "Delete Customer",
+          "name": "Delete Customer - Xóa khách hàng",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2600,7 +2830,7 @@
           ]
         },
         {
-          "name": "Delete Product",
+          "name": "Delete Product - Xóa sản phẩm",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2621,7 +2851,7 @@
           ]
         },
         {
-          "name": "Delete Warehouse",
+          "name": "Delete Warehouse - Xóa kho",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2642,7 +2872,7 @@
           ]
         },
         {
-          "name": "SuperAdmin Delete Tenant",
+          "name": "SuperAdmin Delete Tenant - Quản trị hệ thống xóa tenant",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -2665,8 +2895,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 204 / 401 / 403 / 404\", function () {",
-                  "  pm.expect([204,401,403,404]).to.include(pm.response.code);",
+                  "pm.test(\"Status 204 / 404\", function () {",
+                  "  pm.expect([204,404]).to.include(pm.response.code);",
                   "});"
                 ]
               }

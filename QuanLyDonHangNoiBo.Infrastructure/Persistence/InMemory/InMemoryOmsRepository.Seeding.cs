@@ -29,6 +29,7 @@ public sealed partial class InMemoryOmsRepository
 
         var demoPasswordHash = QuanLyDonHangNoiBo.Application.Common.Security.PasswordHasher.HashPassword("Demo@123");
         _users.AddRange([
+            new AppUser { TenantId = tenant.Id, FullName = "System Super Admin", Email = "superadmin@demo.vn", PasswordHash = demoPasswordHash, Role = UserRole.SuperAdmin },
             new AppUser { TenantId = tenant.Id, FullName = "Nguyen Minh Anh", Email = "admin@demo.vn", PasswordHash = demoPasswordHash, Role = UserRole.TenantAdmin },
             new AppUser { TenantId = tenant.Id, FullName = "Tran Quoc Bao", Email = "manager@demo.vn", PasswordHash = demoPasswordHash, Role = UserRole.Manager },
             new AppUser { TenantId = tenant.Id, FullName = "Le Thu Ha", Email = "sales@demo.vn", PasswordHash = demoPasswordHash, Role = UserRole.Sales },
